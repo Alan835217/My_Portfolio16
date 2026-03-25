@@ -12,7 +12,7 @@ const Home = ({ onAdminClick, theme, toggleTheme }) => {
   useEffect(() => {
     const fetchContent = async () => {
       try {
-        const res = await axios.get(`http://127.0.0.1:5000/api/content?t=${Date.now()}`);
+        const res = await axios.get(`/api/content?t=${Date.now()}`);
         setContent(res.data);
       } catch (err) {
         console.error('Error fetching content', err);

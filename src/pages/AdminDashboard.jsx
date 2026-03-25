@@ -10,7 +10,7 @@ const AdminDashboard = ({ onLogout, theme, toggleTheme }) => {
   const [newEdu, setNewEdu] = useState({ degree: '', institution: '', year: '', description: '' });
   const [saveStatus, setSaveStatus] = useState('');
 
-  const API_BASE = 'http://127.0.0.1:5000/api';
+  const API_BASE = '/api';
 
   const fetchContent = async () => {
     try {
