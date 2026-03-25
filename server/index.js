@@ -23,17 +23,29 @@ app.use(express.json());
 // Database setup
 const dbPath = path.resolve(__dirname, 'database/portfolio.db');
 let db;
+
+// Safe Mode: Provide a mock database if sqlite3 fails or if in restricted environment
+const createMockDb = () => ({
+    run: (sql, params, cb) => typeof params === 'function' ? params(null) : (cb && cb(null)),
+    get: (sql, params, cb) => typeof params === 'function' ? params(null, null) : (cb && cb(null, null)),
+    all: (sql, params, cb) => typeof params === 'function' ? params(null, []) : (cb && cb(null, [])),
+    serialize: (cb) => cb(),
+    close: () => {}
+});
+
 try {
     db = new Database(dbPath, (error) => {
         if (error) {
-            console.error('DATABASE ERROR:', error.message);
+            console.error('DATABASE ERROR (Falling back to empty mode):', error.message);
+            db = createMockDb();
         } else {
             console.log('Connected to the SQLite database.');
             createTables();
         }
     });
 } catch (e) {
-    console.error('Failed to initialize database:', e);
+    console.error('Failed to initialize database (Using Mock Mode):', e);
+    db = createMockDb();
 }
 
 function createTables() {
@@ -167,7 +179,15 @@ app.get('/api/education', (req, res) => {
     db.all(`SELECT * FROM education`, (err, rows) => res.json(rows || []));
 });
 
+app.get('/api/ping', (req, res) => {
+    res.json({ 
+        status: 'online', 
+        database: db ? (db.all ? 'mock' : 'sqlite') : 'none' 
+    });
+});
+
 app.get('/api/debug-db', (req, res) => {
+    if (!db || !db.all) return res.json({ error: 'Database not initialized' });
     db.all(`SELECT * FROM about`, (err, rows) => {
         res.json(rows);
     });
