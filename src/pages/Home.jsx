@@ -21,9 +21,9 @@ const Home = ({ onAdminClick, theme, toggleTheme }) => {
     fetchContent();
   }, []);
 
-  if (!content) return <div style={{ height: '100vh', display: 'flex', justifyContent: 'center', alignItems: 'center', background: 'var(--bg-color)', color: 'var(--text-main)', flexDirection: 'column' }}>
-    <p>Loading Portfolio...</p>
-    <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', marginTop: '1rem' }}>Make sure backend is running on port 5000</p>
+  if (!content) return <div style={{ height: '100vh', display: 'flex', justifyContent: 'center', alignItems: 'center', background: 'var(--bg-color)', color: 'var(--text-main)', flexDirection: 'column', textAlign: 'center', padding: '2rem' }}>
+    <p style={{ fontSize: '1.5rem', fontWeight: 'bold' }}>Loading Portfolio...</p>
+    <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', marginTop: '1rem' }}>If this takes too long, verify your backend is running.</p>
   </div>;
 
   // Use settings from content if available, fallback to showing all

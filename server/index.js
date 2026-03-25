@@ -22,13 +22,19 @@ app.use(express.json());
 
 // Database setup
 const dbPath = path.resolve(__dirname, 'database/portfolio.db');
-const db = new Database(dbPath, (error) => {
-    if (error) console.error('Error opening database', error.message);
-    else {
-        console.log('Connected to the SQLite database.');
-        createTables();
-    }
-});
+let db;
+try {
+    db = new Database(dbPath, (error) => {
+        if (error) {
+            console.error('DATABASE ERROR:', error.message);
+        } else {
+            console.log('Connected to the SQLite database.');
+            createTables();
+        }
+    });
+} catch (e) {
+    console.error('Failed to initialize database:', e);
+}
 
 function createTables() {
     db.serialize(() => {
@@ -244,7 +250,8 @@ app.delete('/api/education/:id', (req, res) => {
 
 export default app;
 
-if (process.env.NODE_ENV !== 'production' || !process.env.VERCEL) {
+// Only start the server if NOT in Vercel or Netlify environment
+if (!process.env.VERCEL && !process.env.NETLIFY && process.env.NODE_ENV !== 'production') {
     app.listen(PORT, () => {
         console.log(`Server running on port ${PORT}`);
     });
