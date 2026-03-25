@@ -12,7 +12,7 @@ const AdminLogin = ({ onLoginSuccess, onCancel }) => {
       const res = await axios.post('http://localhost:5000/api/login', { username, password });
       localStorage.setItem('token', res.data.token);
       onLoginSuccess();
-    } catch (err) {
+    } catch {
       setError('Invalid credentials');
     }
   };

@@ -21,7 +21,10 @@ const Home = ({ onAdminClick, theme, toggleTheme }) => {
     fetchContent();
   }, []);
 
-  if (!content) return <div style={{ height: '100vh', display: 'flex', justifyContent: 'center', alignItems: 'center', background: 'var(--bg-color)', color: 'var(--text-main)' }}>Loading Portfolio...</div>;
+  if (!content) return <div style={{ height: '100vh', display: 'flex', justifyContent: 'center', alignItems: 'center', background: 'var(--bg-color)', color: 'var(--text-main)', flexDirection: 'column' }}>
+    <p>Loading Portfolio...</p>
+    <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', marginTop: '1rem' }}>Make sure backend is running on port 5000</p>
+  </div>;
 
   // Use settings from content if available, fallback to showing all
   const displaySettings = content.settings || { show_about: true, show_skills: true, show_projects: true, show_education: true };
@@ -42,9 +45,7 @@ const Home = ({ onAdminClick, theme, toggleTheme }) => {
       {displaySettings.show_projects && <Projects projects={content.projects} />}
       {displaySettings.show_education && <Education education={content.education} />}
       
-      <footer style={{ padding: '4rem', textAlign: 'center', color: 'var(--text-secondary)', borderTop: '1px solid var(--border-glass)', background: 'var(--bg-color)' }}>
-        <p>&copy; 2026 Portfolio. Built with React & Node.</p>
-      </footer>
+
     </>
   );
 };

@@ -7,6 +7,7 @@ import bcrypt from 'bcryptjs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import dotenv from 'dotenv';
+/* global process */
 dotenv.config();
 
 const __filename = fileURLToPath(import.meta.url);
@@ -21,8 +22,8 @@ app.use(express.json());
 
 // Database setup
 const dbPath = path.resolve(__dirname, 'database/portfolio.db');
-const db = new Database(dbPath, (err) => {
-    if (err) console.error('Error opening database', err.message);
+const db = new Database(dbPath, (error) => {
+    if (error) console.error('Error opening database', error.message);
     else {
         console.log('Connected to the SQLite database.');
         createTables();
@@ -43,7 +44,7 @@ function createTables() {
 
         // Migration for existing databases
         ['github', 'linkedin', 'email'].forEach(col => {
-            db.run(`ALTER TABLE about ADD COLUMN ${col} TEXT`, (err) => {});
+            db.run(`ALTER TABLE about ADD COLUMN ${col} TEXT`, () => {});
         });
 
         db.run(`CREATE TABLE IF NOT EXISTS skills (

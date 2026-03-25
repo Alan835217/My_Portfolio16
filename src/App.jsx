@@ -31,7 +31,12 @@ function App() {
 
   useEffect(() => {
     const token = localStorage.getItem('token');
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (token) setIsAdmin(true);
+  }, []);
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchSettings();
   }, []);
 

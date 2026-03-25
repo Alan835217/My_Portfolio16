@@ -16,7 +16,22 @@ const Navbar = ({ onAdminClick, theme, toggleTheme, settings }) => {
       justifyContent: 'space-between',
       alignItems: 'center'
     }}>
-      <div className="glow-text" style={{ fontSize: '1.5rem', fontWeight: 'bold' }}>PORTFOLIO</div>
+      <div className="glow-text" style={{ 
+        fontSize: '1.2rem', 
+        fontWeight: 'bold',
+        background: 'linear-gradient(135deg, #00d4ff, #0099ff)',
+        WebkitBackgroundClip: 'text',
+        WebkitTextFillColor: 'transparent',
+        backgroundClip: 'text',
+        padding: '0.5rem 1rem',
+        borderRadius: '50%',
+        border: '2px solid #00d4ff',
+        width: '45px',
+        height: '45px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center'
+      }}>PKM</div>
       
       <div className="desktop-menu" style={{ display: 'flex', gap: '2rem', alignItems: 'center' }}>
         {settings?.show_about && <a href="#hero" style={{ color: 'var(--text-main)', textDecoration: 'none' }}>About</a>}
