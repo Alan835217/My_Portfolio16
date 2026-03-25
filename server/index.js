@@ -20,29 +20,31 @@ const SECRET_KEY = process.env.JWT_SECRET || 'your_secret_key';
 app.use(cors());
 app.use(express.json());
 
+// Serve static files from the React app (Standard for Render/Universal hosting)
+app.use(express.static(path.join(__dirname, '../dist')));
+
 // Database setup
 const dbPath = path.resolve(__dirname, 'database/portfolio.db');
-let db;
-
-// Safe Mode: Provide a mock database if sqlite3 fails or if in restricted environment
-const createMockDb = () => ({
-    run: (sql, params, cb) => typeof params === 'function' ? params(null) : (cb && cb(null)),
-    get: (sql, params, cb) => typeof params === 'function' ? params(null, null) : (cb && cb(null, null)),
-    all: (sql, params, cb) => typeof params === 'function' ? params(null, []) : (cb && cb(null, [])),
-    serialize: (cb) => cb(),
-    close: () => {}
-});
-
 try {
+    // On Netlify/Vercel, we have limited file access. 
+    // If the path doesn't exist or is read-only, we fall back early.
     db = new Database(dbPath, (error) => {
         if (error) {
-            console.error('DATABASE ERROR (Falling back to empty mode):', error.message);
+            console.error('DATABASE ERROR (Falling back to mock):', error.message);
             db = createMockDb();
         } else {
             console.log('Connected to the SQLite database.');
             createTables();
         }
     });
+
+    // Forced timeout to prevent hanging on serverless
+    setTimeout(() => {
+        if (db && !db.all) {
+            console.error('DB Initialization timed out, using mock.');
+            db = createMockDb();
+        }
+    }, 2000);
 } catch (e) {
     console.error('Failed to initialize database (Using Mock Mode):', e);
     db = createMockDb();
@@ -141,20 +143,32 @@ app.post('/api/login', (req, res) => {
 
 app.get('/api/content', (req, res) => {
     console.log('GET /api/content requested');
-    const content = {};
+    const content = {
+        about: { title: 'User Portfolio (Offline Mode)', description: 'Database initialization is taking longer than expected or is unavailable in this environment.' },
+        skills: [], projects: [], education: [], settings: { show_about: true, show_skills: true, show_projects: true, show_education: true }
+    };
+
+    if (!db || !db.serialize) {
+        return res.json(content);
+    }
+
+    const timeout = setTimeout(() => {
+        if (!res.headersSent) res.json(content);
+    }, 3000);
+
     db.serialize(() => {
         db.get(`SELECT * FROM about LIMIT 1`, (err, about) => {
-            content.about = about || {};
+            if (about) content.about = about;
             db.all(`SELECT * FROM skills`, (err, skills) => {
-                content.skills = skills || [];
+                if (skills) content.skills = skills;
                 db.all(`SELECT * FROM projects`, (err, projects) => {
-                    content.projects = projects || [];
+                    if (projects) content.projects = projects;
                     db.all(`SELECT * FROM education`, (err, education) => {
-                        content.education = education || [];
+                        if (education) content.education = education;
                         db.all(`SELECT * FROM settings`, (err, settings) => {
-                            content.settings = settings.reduce((acc, curr) => ({ ...acc, [curr.key]: curr.value === 'true' }), {});
-                            console.log('Content fetched successfully:', { aboutTitle: content.about?.title, hasSocials: !!(content.about?.github || content.about?.linkedin || content.about?.email) });
-                            res.json(content);
+                            clearTimeout(timeout);
+                            if (settings) content.settings = settings.reduce((acc, curr) => ({ ...acc, [curr.key]: curr.value === 'true' }), {});
+                            if (!res.headersSent) res.json(content);
                         });
                     });
                 });
@@ -270,8 +284,17 @@ app.delete('/api/education/:id', (req, res) => {
 
 export default app;
 
-// Only start the server if NOT in Vercel or Netlify environment
-if (!process.env.VERCEL && !process.env.NETLIFY && process.env.NODE_ENV !== 'production') {
+// Universal catch-all for React Routing
+app.get('*', (req, res) => {
+    // Only serve index.html if we aren't in a serverless function that handles it differently
+    if (!process.env.VERCEL && !process.env.NETLIFY) {
+        res.sendFile(path.join(__dirname, '../dist/index.html'));
+    }
+});
+
+// Only start the server if NOT in a serverless-only environment (like Vercel/Netlify functions)
+// Render and traditional VPS will run this
+if (!process.env.VERCEL && !process.env.NETLIFY) {
     app.listen(PORT, () => {
         console.log(`Server running on port ${PORT}`);
     });
